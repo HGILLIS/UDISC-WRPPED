@@ -1,0 +1,167 @@
+---
+title: "UDISC"
+author: "ME :)"
+date: "2023-02-23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## importing the stats (Change per run)
+
+code to import all of the stats into a df
+
+```{r}
+udisc_path <- "E:\\Obsidian vault\\Personal Notes\\R\\Projects\\UDISC\\Stats\\Dad2-23-2023.csv"
+
+udisc_stats <- read.csv(udisc_path)
+
+#creating primary key
+udisc_stats <- mutate(udisc_stats,
+                      Course_ID = paste(udisc_stats$CourseName, ": ", udisc_stats$LayoutName, ": "))
+```
+
+## Just solo stats (Change per run)
+
+Getting The specific persons name, and using that to filter data down to just their rounds
+
+```{r}
+
+Just_One_Name <- "Ben"
+Just_One_Name
+
+Just_One <- filter(udisc_stats, PlayerName == Just_One_Name)
+Just_One
+```
+
+## Average strokes on the nth hole
+
+for now, over entire career
+
+```{r}
+First_hole_Avg <- mean(Just_One$Hole1)
+First_hole_Avg
+
+Second_hole_Avg <- mean(Just_One$Hole2)
+Second_hole_Avg
+
+Third_hole_Avg <- mean(Just_One$Hole3)
+Third_hole_Avg
+
+Fourth_hole_Avg <- mean(Just_One$Hole4)
+Fourth_hole_Avg
+
+Fifth_hole_Avg <- mean(Just_One$Hole5)
+Fifth_hole_Avg
+
+Sixth_hole_Avg <- mean(Just_One$Hole6)
+Sixth_hole_Avg
+
+Seventh_hole_Avg <- mean(Just_One$Hole7)
+Seventh_hole_Avg
+
+Eighth_hole_Avg <- mean(Just_One$Hole8)
+Eighth_hole_Avg
+
+Ninth_hole_Avg <- mean(Just_One$Hole9)
+Ninth_hole_Avg
+
+Front_Nine_Avgs <- c(First_hole_Avg, Second_hole_Avg, Third_hole_Avg, Fourth_hole_Avg, Fifth_hole_Avg, Sixth_hole_Avg, Seventh_hole_Avg, Eighth_hole_Avg, Ninth_hole_Avg)
+Front_Nine_Avgs
+```
+
+## calculate par averages
+
+```{r}
+#create table the combines all courses into one row, and counts number of times played
+Playcounts <- group_by(Just_One, Course_ID,) %>% 
+   summarize(
+    n()
+  )
+
+Playcounts <- Playcounts %>% distinct(.keep_all = TRUE)
+
+#Just courses played by the main person
+Just_One_Course <- c(Playcounts$Course_ID)
+
+#Total number of games played
+Total_Games <- as.numeric(nrow(Just_One))
+
+#getting the par for each course played
+Pars <- filter(udisc_stats, PlayerName == "Par" ) 
+
+Pars <- Pars %>% select(-Date)
+
+Pars <- group_by(Pars, Course_ID, Hole1, Hole2, Hole3, Hole4, Hole5, Hole6, Hole7, Hole8, Hole9, Hole10, Hole11, Hole12, Hole13, Hole14, Hole15, Hole16, Hole17, Hole18, Hole19, Hole20, Hole21, Hole22, Hole23, Hole24)
+
+# get rid of dupes
+Pars <- Pars[!duplicated(Pars$Course_ID), ]
+
+# THE MAGIC CODE
+Pars <- filter(Pars, Course_ID %in% Playcounts$Course_ID)
+
+#ordering pars and Playcounts by Course_ID to get them in the same order
+
+Pars <- Pars[order(Pars$Course_ID), ]
+
+Playcounts <- Playcounts[order(Playcounts$Course_ID), ]
+
+
+#get weighted average of par for each hole: sum of (par * ((this holes playcount)/(total hole one playcount)))
+First_hole_Avg_Par <- sum(Pars$Hole1*(Playcounts$`n()` / sum(Playcounts$`n()`)))
+
+Second_hole_Avg_Par <- sum(Pars$Hole2*(Playcounts$`n()` / sum(Playcounts$`n()`)))
+
+Third_hole_Avg_Par <- sum(Pars$Hole3*(Playcounts$`n()` / sum(Playcounts$`n()`)))
+
+Fourth_hole_Avg_Par <- sum(Pars$Hole4*(Playcounts$`n()` / sum(Playcounts$`n()`)))
+
+Fifth_hole_Avg_Par <- sum(Pars$Hole5*(Playcounts$`n()` / sum(Playcounts$`n()`)))
+
+Sixth_hole_Avg_Par <- sum(Pars$Hole6*(Playcounts$`n()` / sum(Playcounts$`n()`)))
+
+Seventh_hole_Avg_Par <- sum(Pars$Hole7*(Playcounts$`n()` / sum(Playcounts$`n()`)))
+
+Eighth_hole_Avg_Par <- sum(Pars$Hole8*(Playcounts$`n()` / sum(Playcounts$`n()`)))
+
+Ninth_hole_Avg_Par <- sum(Pars$Hole9*(Playcounts$`n()` / sum(Playcounts$`n()`)))
+
+#assign values to vector
+Front_Nine_Avg_Pars <- c(First_hole_Avg_Par, Second_hole_Avg_Par, Third_hole_Avg_Par, Fourth_hole_Avg_Par, Fifth_hole_Avg_Par, Sixth_hole_Avg_Par, Seventh_hole_Avg_Par, Eighth_hole_Avg_Par, Ninth_hole_Avg_Par)
+Front_Nine_Avg_Pars
+
+```
+
+## Calculate avg score on the nth hole
+
+```{r}
+Rel_Score <- (Front_Nine_Avgs - Front_Nine_Avg_Pars)
+```
+
+## Plotting Average strokes on each hole (holes 1-9)
+
+```{r}
+#get the ylimit to have extra space on the bottom, for labels
+
+Ylim_One <- min(Front_Nine_Avgs-.03)
+Ylim_Two <- max(Front_Nine_Avgs)
+
+plot(1:9, Front_Nine_Avgs, xlab = "Hole #", ylab = "Avg Strokes (Lower is Better)", xlim = c(1,9), ylim = c(Ylim_One, Ylim_Two), main = paste("Avg strokes on the nth hole for:", Just_One_Name ),text(1:9, Front_Nine_Avgs-.03, round(Front_Nine_Avgs, 2)), ) 
+
+
+```
+
+## Plotting Avg score on the nth hole
+
+```{r}
+
+Ylim_Rel_One <- min(Rel_Score-.03)
+Ylim_Rel_Two <- max(Rel_Score)
+
+plot(1:9, Rel_Score, xlab = "Hole #", ylab = "Avg Score (Lower is Better)", xlim = c(1,9), ylim = c(Ylim_Rel_One, Ylim_Rel_Two), main = paste("Avg score on the nth hole for:", Just_One_Name ),text(1:9, Rel_Score -.03, round(Rel_Score, 2)), )
+
+
+```
