@@ -8,6 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(ggplot2)
 ```
 
 ## importing the stats (Change per run)
@@ -149,19 +150,29 @@ Rel_Score <- (Front_Nine_Avgs - Front_Nine_Avg_Pars)
 Ylim_One <- min(Front_Nine_Avgs-.03)
 Ylim_Two <- max(Front_Nine_Avgs)
 
-plot(1:9, Front_Nine_Avgs, xlab = "Hole #", ylab = "Avg Strokes (Lower is Better)", xlim = c(1,9), ylim = c(Ylim_One, Ylim_Two), main = paste("Avg strokes on the nth hole for:", Just_One_Name ),text(1:9, Front_Nine_Avgs-.03, round(Front_Nine_Avgs, 2)), ) 
 
-
+ggplot(data = df, aes(x = 1:9, y = Front_Nine_Avgs, label = Rel_Score), xlims = c(1,9), ylims = c(Ylim_Rel_One, Ylim_Rel_Two) ) +
+  geom_point() + 
+  labs(title = paste("Avg strokes on the nth hole for:", Just_One_Name ), x = "Hole #", y = "Avg Strokes (Lower is Better)")+ 
+  scale_x_continuous(breaks = seq(1,9 , by = 1)) + 
+  scale_y_continuous(breaks = round(seq(Ylim_One, Ylim_Two, .1), digits=2)) +
+  geom_text(label = round(Front_Nine_Avgs, digits = 2), hjust = 0,nudge_x = -0.125, nudge_y = -0.03)
 ```
 
 ## Plotting Avg score on the nth hole
 
 ```{r}
+#Put Rel_Score into a data frame
+df <- data.frame(Rel_Score, 1:9)
 
 Ylim_Rel_One <- min(Rel_Score-.03)
 Ylim_Rel_Two <- max(Rel_Score)
 
-plot(1:9, Rel_Score, xlab = "Hole #", ylab = "Avg Score (Lower is Better)", xlim = c(1,9), ylim = c(Ylim_Rel_One, Ylim_Rel_Two), main = paste("Avg score on the nth hole for:", Just_One_Name ),text(1:9, Rel_Score -.03, round(Rel_Score, 2)), )
 
-
+ggplot(data = df, aes(x = 1:9, y = Rel_Score, label = Rel_Score), xlims = c(1,9), ylims = c(Ylim_Rel_One, Ylim_Rel_Two) ) +
+  geom_point() + 
+  labs(title = paste("Avg score on the nth hole for:", Just_One_Name ), x = "Hole #", y = "Avg Score (Lower is Better)")+ 
+  scale_x_continuous(breaks = seq(1,9 , by = 1)) + 
+  scale_y_continuous(breaks = round(seq(Ylim_Rel_One, Ylim_Rel_Two, .1), digits=2)) +
+  geom_text(label = round(Rel_Score, digits = 2), hjust = 0,nudge_x = -0.125, nudge_y = -0.03)
 ```
