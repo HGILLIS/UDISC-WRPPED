@@ -1,8 +1,10 @@
 ---
 title: "UDISC"
-author: "ME :)"
+author: "Henry Gillis"
 date: "2023-02-23"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -15,14 +17,16 @@ library(ggplot2)
 
 code to import all of the stats into a df
 
-```{r}
+```{r, results='hide'}
 udisc_path <- "E:\\Obsidian vault\\Personal Notes\\R\\Projects\\UDISC\\Stats\\Dad2-23-2023.csv"
 
 udisc_stats <- read.csv(udisc_path)
 
-#creating primary key
+
 udisc_stats <- mutate(udisc_stats,
                       Course_ID = paste(udisc_stats$CourseName, ": ", udisc_stats$LayoutName, ": "))
+
+summary(udisc_stats)
 ```
 
 ## Just solo stats (Change per run)
@@ -35,7 +39,7 @@ Just_One_Name <- "Ben"
 Just_One_Name
 
 Just_One <- filter(udisc_stats, PlayerName == Just_One_Name)
-Just_One
+head(Just_One)
 ```
 
 ## Average strokes on the nth hole
@@ -145,6 +149,10 @@ Rel_Score <- (Front_Nine_Avgs - Front_Nine_Avg_Pars)
 ## Plotting Average strokes on each hole (holes 1-9)
 
 ```{r}
+
+#Put Rel_Score into a data frame
+df <- data.frame(Rel_Score, 1:9)
+
 #get the ylimit to have extra space on the bottom, for labels
 
 Ylim_One <- min(Front_Nine_Avgs-.03)
@@ -162,8 +170,7 @@ ggplot(data = df, aes(x = 1:9, y = Front_Nine_Avgs, label = Rel_Score), xlims = 
 ## Plotting Avg score on the nth hole
 
 ```{r}
-#Put Rel_Score into a data frame
-df <- data.frame(Rel_Score, 1:9)
+
 
 Ylim_Rel_One <- min(Rel_Score-.03)
 Ylim_Rel_Two <- max(Rel_Score)
